@@ -48,21 +48,21 @@ public class ScholarshipCalculatorTest {
     // ==========================================
     @Test
     void gpa_calculatesAverage() {
-        double[] scores = {95, 85, 75, 65}; // A(4), B(3), C(2), D(1) -> 10 / 4 = 2.5
+        double[] scores = { 95, 85, 75, 65 }; // A(4), B(3), C(2), D(1) -> 10 / 4 = 2.5
         assertEquals(2.5, calculator.gpa(scores), 0.001);
     }
 
     @Test
     void gpa_calculatesAverage_withFGrade() {
         // switch-ийн default (F) салааг шалгах
-        double[] scores = {95, 40}; // A(4) + F(0) -> 4 / 2 = 2.0
+        double[] scores = { 95, 40 }; // A(4) + F(0) -> 4 / 2 = 2.0
         assertEquals(2.0, calculator.gpa(scores), 0.001);
     }
 
     @Test
     void gpa_throwsException_whenNullOrEmpty() {
         assertThrows(IllegalArgumentException.class, () -> calculator.gpa(null));
-        assertThrows(IllegalArgumentException.class, () -> calculator.gpa(new double[]{}));
+        assertThrows(IllegalArgumentException.class, () -> calculator.gpa(new double[] {}));
     }
 
     // ==========================================
@@ -85,13 +85,15 @@ public class ScholarshipCalculatorTest {
 
     @Test
     void scholarship_returns70_whenGpaHighButCreditsLow() {
-        // gpa >= 3.8 (true) боловч credits < 15 (false) үед дараагийн 70-ын шалгуурт орох
+        // gpa >= 3.8 (true) боловч credits < 15 (false) үед дараагийн 70-ын шалгуурт
+        // орох
         assertEquals(70, calculator.scholarship(3.9, 14, false));
     }
 
     @Test
     void scholarship_returns50_whenGpaMediumButCreditsLow() {
-        // gpa >= 3.4 (true) боловч credits < 12 (false) үед дараагийн 50-ийн шалгуурт орох
+        // gpa >= 3.4 (true) боловч credits < 12 (false) үед дараагийн 50-ийн шалгуурт
+        // орох
         assertEquals(50, calculator.scholarship(3.5, 10, false));
     }
 
@@ -110,5 +112,21 @@ public class ScholarshipCalculatorTest {
         assertThrows(IllegalArgumentException.class, () -> calculator.scholarship(-0.1, 15, false));
         assertThrows(IllegalArgumentException.class, () -> calculator.scholarship(4.1, 15, false));
         assertThrows(IllegalArgumentException.class, () -> calculator.scholarship(3.5, -1, false));
+    }
+
+    @Test
+    void gpa_calculatesAverage_withOneElement() {
+        double[] scores = { 95 };
+
+        assertEquals(4.0, calculator.gpa(scores), 0.001);
+    }
+
+    @Test
+    void gpa_calculatesAverage_withMultipleElements() {
+        double[] scores = { 95, 85, 75, 65, 40 };
+
+        // A(4) + B(3) + C(2) + D(1) + F(0) = 10
+        // 10 / 5 = 2.0
+        assertEquals(2.0, calculator.gpa(scores), 0.001);
     }
 }
