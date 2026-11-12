@@ -3,8 +3,25 @@
 **Хичээл:** F.CSA313 — Программ хангамжийн чанарын баталгаа ба туршилт  
 **Сэдэв:** Бүтцийн тест ба кодын хамрах хүрээ (Code Coverage)  
 **Төсөл:** Scholarship Calculator  
+**Оюутны нэр:** А.Төгөлдөр  
 **Оюутны код:** B242270001  
 **Хөгжүүлэлтийн орчин:** VS Code, Ubuntu (WSL2)
+
+### Орчны мэдээлэл (Version Outputs)
+`java -version`
+```text
+openjdk version "25.0.4.1" 2026-08-18
+OpenJDK Runtime Environment (build 25.0.4.1+1-1-26.04.4-Ubuntu)
+OpenJDK 64-Bit Server VM (build 25.0.4.1+1-1-26.04.4-Ubuntu, mixed mode, sharing)
+```
+`mvn -version`
+```text
+Apache Maven 3.9.12
+Maven home: /usr/share/maven
+Java version: 25.0.4.1, vendor: Ubuntu, runtime: /usr/lib/jvm/java-25-openjdk-amd64
+Default locale: en, platform encoding: UTF-8
+OS name: "linux", version: "6.18.33.2-microsoft-standard-wsl2", arch: "amd64", family: "unix"
+```
 
 ---
 
