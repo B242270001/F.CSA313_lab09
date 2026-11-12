@@ -13,14 +13,18 @@
 openjdk version "25.0.4.1" 2026-08-18
 OpenJDK Runtime Environment (build 25.0.4.1+1-1-26.04.4-Ubuntu)
 OpenJDK 64-Bit Server VM (build 25.0.4.1+1-1-26.04.4-Ubuntu, mixed mode, sharing)
+
 ```
+
 `mvn -version`
+
 ```text
 Apache Maven 3.9.12
 Maven home: /usr/share/maven
 Java version: 25.0.4.1, vendor: Ubuntu, runtime: /usr/lib/jvm/java-25-openjdk-amd64
 Default locale: en, platform encoding: UTF-8
 OS name: "linux", version: "6.18.33.2-microsoft-standard-wsl2", arch: "amd64", family: "unix"
+
 ```
 
 ---
@@ -31,326 +35,97 @@ OS name: "linux", version: "6.18.33.2-microsoft-standard-wsl2", arch: "amd64", f
 
 Лабораторийн хүрээнд дараах ажлуудыг гүйцэтгэв:
 
-- JUnit 5 ашиглан нэгжийн тест (Unit Test) боловсруулах.
-- JaCoCo ашиглан кодын хамрах хүрээг (Code Coverage) хэмжих.
-- Control Flow Graph (CFG) байгуулж программын гүйцэтгэлийн урсгалыг шинжлэх.
-- Line Coverage болон Branch Coverage-ийг бүрэн хамруулах.
-- Давталтын хилийн утгуудыг (Loop Boundary) тестлэх.
-- Boundary Value Analysis ашиглан логик алдаа илрүүлэх.
-- Илрүүлсэн алдааг засаж, тестээр дахин баталгаажуулах.
-- Git ашиглан хөгжүүлэлтийн үе шат бүрийн өөрчлөлтийг хувилбаржуулах.
+* JUnit 5 ашиглан нэгжийн тест (Unit Test) боловсруулах.
+* JaCoCo ашиглан кодын хамрах хүрээг (Code Coverage) хэмжих.
+* Control Flow Graph (CFG) байгуулж программын гүйцэтгэлийн урсгалыг шинжлэх.
+* Line Coverage болон Branch Coverage-ийг бүрэн хамруулах.
+* Давталтын хилийн утгуудыг (Loop Boundary) тестлэх.
+* Boundary Value Analysis ашиглан логик алдаа илрүүлж засах.
+* Git ашиглан хөгжүүлэлтийн үе шат бүрийн өөрчлөлтийг хувилбаржуулах.
+
+---
 
 ## 2. Төслийн тухай
 
-Энэхүү төсөл нь оюутны авсан оноогоор үсгэн үнэлгээ тодорхойлох, голч дүн тооцоолох, тэтгэлгийн хэмжээг тогтоох зориулалттай Java программ юм.
+Энэхүү төсөл нь оюутны авсан оноогоор үсгэн үнэлгээ тодорхойлох, голч дүн тооцоолох, тэтгэлгийн хэмжээг тогтоох зориулалттай Java программ юм (`ScholarshipCalculator`).
 
-Программын үндсэн класс:
+---
 
-`ScholarshipCalculator`
+## 3. Хэсэг A: Happy path тестүүд ба эхний хэмжилт
 
-Тус класс нь дараах гурван үндсэн method-той.
+Эхний ээлжинд хэвийн урсгалыг шалгах тестүүдийг бичиж `mvn verify` ажиллуулсан. `results/jacoco-A.csv` файлаас харахад:
 
-### 2.1. letterGrade()
+* **Line Coverage (А):** 100% (25/25 мөр)
+* **Branch Coverage (А):** 100% (41/41 салаа)
 
-Оюутны авсан оноог үсгэн үнэлгээнд хөрвүүлнэ.
+---
 
-| Онооны муж | Үнэлгээ |
-|---|---|
-| 90–100 | A |
-| 80–89.99 | B |
-| 70–79.99 | C |
-| 60–69.99 | D |
-| 0–59.99 | F |
-| 0-ээс бага, 100-аас их | IllegalArgumentException |
+## 4. Хэсэг B: CFG зурж Branch 100% хүрэх
 
-### 2.2. gpa()
+`scholarship()` болон бусад функцүүдийн Control Flow Graph (CFG)-ийг гараар зурж `docs/cfg-scholarship.png` байдлаар репод оруулсан.
 
-Оюутны авсан оноонуудын үсгэн үнэлгээнд харгалзах голч дүнг тооцоолно.
+### `scholarship()` методын CFG ба Ирмэгийн тестийн холбоос:
 
-| Үнэлгээ | Голч оноо |
-|---|---:|
-| A | 4 |
-| B | 3 |
-| C | 2 |
-| D | 1 |
-| F | 0 |
+`ScholarshipCalculator.java` доторх `scholarship(double gpa, int credits, boolean hasViolation)` методын бодит кодын нөхцөлүүд болон ирмэг бүр дээрх тестийн нэрс:
 
-Голч дүнг нийт онооны нийлбэрийг массивын элементийн тоонд хувааж тооцно.
+| Салаа / Ирмэг (Edge) | Шалгах нөхцөл (Бодит код) | Харгалзрах тестийн нэр (`ScholarshipCalculatorTest.java`) |
+| --- | --- | --- |
+| **Input Validation (GPA < 0)** | `gpa < 0` | `scholarship_throwsException_whenInvalidInput()` |
+| **Input Validation (GPA > 4)** | `gpa > 4` | `scholarship_throwsException_whenInvalidInput()` |
+| **Input Validation (Credits < 0)** | `credits < 0` | `scholarship_throwsException_whenInvalidInput()` |
+| **Violation Check** | `hasViolation == true` | `scholarship_returns0_whenViolation()` |
+| **100% Scholarship** | `gpa >= 3.8 && credits >= 15` | `scholarship_returns100()` |
+| **70% Scholarship (1)** | `gpa >= 3.8` (credits < 15) | `scholarship_returns70_whenGpaHighButCreditsLow()` |
+| **70% Scholarship (2)** | `gpa >= 3.4 && credits >= 12` | `scholarship_returns70()` |
+| **50% Scholarship (1)** | `gpa >= 3.4` (credits < 12) | `scholarship_returns50_whenGpaMediumButCreditsLow()` |
+| **50% Scholarship (2)** | `gpa >= 3.0` | `scholarship_returns50()` |
+| **Else / Default (0)** | `gpa < 3.0` | `scholarship_returns0_whenLowGpa()` |
 
-`null` эсвэл хоосон массив дамжуулсан тохиолдолд `IllegalArgumentException` үүсгэнэ.
+* **Тестийн тоо:** `results/mvn-verify-B.txt` файлаас харахад нийт **19 тест** амжилттай ажилласан (`Tests run: 19, Failures: 0, Errors: 0, Skipped: 0`).
+* **JaCoCo үр дүн:** `results/jacoco-B.csv` ба `results/jacoco-final.csv` тайлангуудад `BRANCH_MISSED = 0` болон `LINE_MISSED = 0` болж бүрэн 100% хамралтод хүрсэн.
 
-### 2.3. scholarship()
+---
 
-Голч дүн, кредитийн хэмжээ болон сахилгын зөрчил байгаа эсэхэд үндэслэн тэтгэлгийн хэмжээг тодорхойлно.
+## 5. Хэсэг C: Давталтын заагийн тестүүд (`gpa()` loop testing)
 
-| Нөхцөл | Тэтгэлэг |
-|---|---:|
-| Сахилгын зөрчилтэй | 0 |
-| GPA ≥ 3.8, кредит ≥ 15 | 100 |
-| GPA ≥ 3.4, кредит ≥ 12 | 70 |
-| GPA ≥ 3.0 | 50 |
-| Бусад тохиолдолд | 0 |
+`gpa()` методын давталтад зориулж 3 төрлийн заагийн тестийг нэмсэн:
 
-GPA нь 0–4, кредит нь 0-ээс багагүй байх ёстой. Хязгаараас гадуур утга дамжуулбал `IllegalArgumentException` үүсгэнэ.
+1. **0 элемент (Хоосон массив/null):** `assertThrows` ашиглан `IllegalArgumentException` шалгасан (`gpa_throwsException_whenNullOrEmpty`).
+2. **1 элемент (`{95}`):** Ганц утгатай үеийн давталтын ажиллагааг шалгасан (`gpa_calculatesAverage_withOneElement`).
+3. **Олон элемент (`{95, 85, 75, 65, 40}`):** Олон давталттай үеийн нийлбэр ба хуваарь зөв ажиллаж буйг шалгасан (`gpa_calculatesAverage_withMultipleElements`).
 
-## 3. Ашигласан технологи, хэрэгслүүд
+---
 
-| Технологи | Хувилбар / Үүрэг |
-|---|---|
-| Java | OpenJDK 25.0.4.1 |
-| Apache Maven | 3.9.12 |
-| JUnit Jupiter | 5.10.2 |
-| JaCoCo | 0.8.12 |
-| Maven Surefire | 3.2.5 |
-| VS Code | Код бичих орчин |
-| Ubuntu / WSL2 | Ажиллуулах орчин |
-| Git | Хувилбарын удирдлага |
+## 6. Хэсэг D: Зааг утгын алдаа ба амьд үлдсэн алдааг илрүүлэх
 
-## 4. Төслийн бүтэц
+### 6.1. Унасан тестийн гаралт (`results/mvn-test-D-fail.txt`)
+
+Кодын хамралт 100% болсон хэдий ч спецификацийн дагуу 60 оноог "D" үнэлгээнд хамруулах үед анхны кодонд байсан `score > 60` гэсэн логик алдааны улмаас `mvn test` ажиллуулахад дараах алдаа гарч тест унасан:
 
 ```text
-F.CSA313_lab09/
-│
-├── pom.xml
-├── README.md
-├── .gitignore
-│
-├── docs/
-│   ├── cfg-letter-grade.png
-│   ├── cfg-gpa.png
-│   ├── cfg-scholarship.png
-│   └── index.html
-│
-├── src/
-│   ├── main/
-│   │   └── java/
-│   │       └── mn/edu/must/sqat/
-│   │           └── ScholarshipCalculator.java
-│   │
-│   └── test/
-│       └── java/
-│           └── mn/edu/must/sqat/
-│               └── ScholarshipCalculatorTest.java
-│
-└── target/
-    ├── surefire-reports/
-    └── site/
-        └── jacoco/
-            ├── index.html
-            ├── jacoco.csv
-            └── jacoco.xml
+[INFO] Running mn.edu.must.sqat.ScholarshipCalculatorTest
+[ERROR] Tests run: 19, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.073 s <<< FAILURE!
+[ERROR] mn.edu.must.sqat.ScholarshipCalculatorTest.letterGrade_returnsD  Time elapsed: 0.012 s  <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+Expected: <D>
+but was: <F>
+    at mn.edu.must.sqat.ScholarshipCalculatorTest.letterGrade_returnsD(ScholarshipCalculatorTest.java:27)
+
 ```
 
-**Тайлбар:** `target/` хавтас нь Maven-ийн build болон тестийн явцад автоматаар үүсдэг тул `.gitignore` файлд оруулж Git хувилбарын удирдлагаас хассан.
+### 6.2. Алдааны засвар ба Commit
 
-## 5. Бүтцийн тест ба CFG шинжилгээ
+* **Алдааны шалтгаан:** `letterGrade()` дотор `if (score > 60) return "D";` гэж бичсэн байсан нь яг 60 оноо авсан оюутныг `D` бус шууд `F` болгож байв.
+* **Засвар:** Уг нөхцөлийг `if (score >= 60) return "D";` болгон засаж тусдаа commit хийсэн.
+* **Commit message:** `fix: correct letter grade boundary at 60 (> 60 to >= 60)`
 
-Программын кодын гүйцэтгэлийн урсгалыг шинжлэхийн тулд гурван үндсэн method-ийн Control Flow Graph (CFG)-ийг байгуулсан.
+### 6.3. Лабораторийн гол дүгнэлт
 
-CFG нь программын гүйцэтгэлийг зангилаа (Node), шилжилт (Edge), нөхцөлт салаалал (Decision) болон давталтаар дүрслэх боломж олгодог.
+Branch болон Line хамралт 100% байх нь кодын бүх зангилаа болон салаанууд тестээр дайран өнгөрснийг баталгаажуулдаг боловч тухайн нөхцөлийн доторх оператор (`>` ба `>=`) буруу байхад түүнийг дангаараа илрүүлж чадахгүй байж болдгийг энэхүү лабаар олж харлаа. Өөрөөр хэлбэл, **код хамралт бол зайлшгүй шаардлагатай хэрэгсэл мөн боловч хангалттай нотолгоо биш юм**. Тиймээс бүтцийн тестийг зааг утгын шинжилгээ (Boundary Value Analysis)-тэй хослуулан хэрэглэх нь програм хангамжийн чанарыг баталгаажуулахад чухал үүрэгтэй.
 
-### 5.1. letterGrade() методын CFG
+---
 
-Энэхүү граф нь онооны хүчинтэй эсэхийг шалгах, онооны муж бүрт тохирох үнэлгээг буцаах салааллуудыг харуулна.
-
-![letterGrade CFG](docs/cfg-letter-grade.png)
-
-### 5.2. gpa() методын CFG
-
-Энэхүү граф нь массивын `null` болон хоосон эсэхийг шалгах, `for` давталтаар оноонуудыг боловсруулах, `switch` нөхцөлөөр голч оноо нэмэх гүйцэтгэлийн урсгалыг харуулна.
-
-![gpa CFG](docs/cfg-gpa.png)
-
-### 5.3. scholarship() методын CFG
-
-Энэхүү граф нь оролтын утгуудын хүчинтэй эсэхийг шалгах, сахилгын зөрчил болон голч дүн, кредитийн нөхцөлүүдэд үндэслэн тэтгэлгийн хэмжээг тодорхойлох салааллуудыг харуулна.
-
-![scholarship CFG](docs/cfg-scholarship.png)
-
-## 6. Тестийн стратеги
-
-Тест боловсруулахдаа дараах аргуудыг ашигласан.
-
-### 6.1. Statement Coverage
-
-Программын гүйцэтгэгдэх команд бүр тестээр ажилласан эсэхийг шалгасан.
-
-### 6.2. Branch Coverage
-
-Нөхцөлт операторуудын True болон False салаа бүрийг ажиллуулах тестүүд боловсруулсан.
-
-### 6.3. Boundary Value Analysis
-
-Онооны хязгаарын утгууд болон тэтгэлгийн нөхцөлүүдийн зааг дээр тест хийсэн.
-
-Жишээлбэл:
-
-- Оноо 0 болон 100.
-- Оноо 60 — D үнэлгээний доод хязгаар.
-- GPA 3.8 болон кредит 15.
-- GPA 3.4 болон кредит 12.
-- GPA 3.0.
-
-### 6.4. Loop Testing
-
-`gpa()` method-ийн `for` давталтыг дараах тохиолдлуудаар шалгасан.
-
-| Тохиолдол | Тестийн оролт | Зорилго |
-|---|---|---|
-| 0 элемент | Хоосон массив | Хоосон массивын хамгаалалт |
-| 1 элемент | `{95}` | Нэг удаагийн давталт |
-| Олон элемент | `{95, 85, 75, 65, 40}` | Олон удаагийн давталт |
-
-Хоосон массивын үед давталтад хүрэхээс өмнө exception үүсэх ёстой. Харин нэг болон олон элементтэй массивын үед давталтын ажиллагааг шалгасан.
-
-## 7. Илрүүлсэн логик алдаа ба засвар
-
-Boundary Value Analysis хийх явцад `letterGrade()` method-ийн 60 онооны зааг дээр логик алдаа илрүүлсэн.
-
-### 7.1. Алдааны шалтгаан
-
-Анхны кодод:
-
-```java
-if (score > 60) return "D";
-```
-
-гэж бичсэн байсан.
-
-Энэ нөхцөл нь яг 60 оноог D үнэлгээнд хамруулахгүй бөгөөд F үнэлгээ буцааж байв.
-
-Гэвч шаардлагын дагуу 60–69.99 оноо D үнэлгээтэй байх ёстой.
-
-### 7.2. Алдааг илрүүлсэн тест
-
-```java
-@Test
-void letterGrade_returnsD() {
-    assertEquals("D", calculator.letterGrade(65));
-    assertEquals("D", calculator.letterGrade(60));
-}
-```
-
-Засвар хийхээс өмнө `mvn test` ажиллуулахад 60 онооны тест амжилтгүй болсон.
-
-### 7.3. Алдааны засвар
-
-Нөхцөлийг дараах байдлаар өөрчилсөн.
-
-```java
-if (score >= 60) return "D";
-```
-
-Үүний дараа дахин тест ажиллуулахад бүх тест амжилттай болсон.
-
-```bash
-mvn clean verify
-```
-
-Энэ туршилт нь 100% Code Coverage нь программын логик зөв эсэхийг дангаараа баталгаажуулахгүй бөгөөд boundary value тест чухал болохыг харуулсан.
-
-## 8. Тестийн үр дүн
-
-JUnit 5 ашиглан нийт 19 нэгжийн тест боловсруулж ажиллуулсан.
-
-Тестүүд нь `letterGrade()`, `gpa()`, `scholarship()` method-уудын хэвийн ажиллагаа, нөхцөлт салаалал, буруу оролт болон давталтын ажиллагааг шалгасан.
-
-Тестийн үр дүн:
-
-| Үзүүлэлт | Үр дүн |
-|---|---:|
-| Нийт тест | 19 |
-| Амжилтгүй тест | 0 |
-| Алдаа (Errors) | 0 |
-| Алгассан тест | 0 |
-| Амжилттай тест | 19 |
-
-## 9. JaCoCo Code Coverage
-
-JaCoCo ашиглан тестийн дараах кодын хамрах хүрээг хэмжсэн.
-
-Одоогийн бүрэн хамралтын үр дүн:
-
-| Coverage төрөл | Хамрах хүрээ |
-|---|---:|
-| Instruction Coverage | 100% |
-| Branch Coverage | 100% |
-| Line Coverage | 100% |
-| Method Coverage | 100% |
-| Class Coverage | 100% |
-
-JaCoCo тайланг дараах замаас үзэх боломжтой:
-
-```text
-target/site/jacoco/index.html
-```
-
-CSV тайлан:
-
-```text
-target/site/jacoco/jacoco.csv
-```
-
-Тайланг үүсгэхийн тулд:
-
-```bash
-mvn clean verify
-```
-
-командыг ажиллуулна.
-
-## 10. Программыг ажиллуулах заавар
-
-### Шаардлагатай орчин
-
-- Java Development Kit (JDK)
-- Apache Maven
-- Git
-
-### 10.1. Repository-г татах
-
-```bash
-git clone <repository-url>
-cd F.CSA313_lab09
-```
-
-### 10.2. Тест ажиллуулах
-
-```bash
-mvn test
-```
-
-### 10.3. Бүрэн build болон JaCoCo тайлан үүсгэх
-
-```bash
-mvn clean verify
-```
-
-### 10.4. JaCoCo тайлан үзэх
-
-```bash
-code target/site/jacoco/index.html
-```
-
-Эсвэл `target/site/jacoco/index.html` файлыг веб хөтөчөөр нээнэ.
-
-## 11. Git хувилбарын удирдлага
-
-Хөгжүүлэлтийн явцад тест нэмэх, логик алдаа засах болон төслийн тохиргоог өөрчлөх үе шатуудыг тусдаа commit-оор хадгалсан.
-
-Жишээ commit-ууд:
-
-```text
-test: add initial scholarship calculator tests
-test: add full branch coverage tests
-fix: correct letter grade boundary at 60
-chore: add gitignore for build files
-test: cover gpa loop with multiple elements
-```
-
-Эдгээр commit-ууд нь тестийн хамрах хүрээг нэмэгдүүлэх, илрүүлсэн алдааг засах үйл явцыг хянах боломж олгоно.
-
-## 12. Дүгнэлт
+## 7. Дүгнэлт
 
 Энэхүү лабораторийн ажлаар Java программын бүтцийн тест боловсруулж, JUnit 5 болон JaCoCo хэрэгслүүдийг ашиглан кодын хамрах хүрээг хэмжиж сурсан.
 
@@ -360,8 +135,4 @@ test: cover gpa loop with multiple elements
 
 Энэхүү лабораторийн ажлаас авсан гол сургамж нь өндөр Code Coverage нь кодын бүх хэсэг ажилласныг харуулдаг боловч логик зөв байдлыг бүрэн батлахгүй. Иймээс бүтцийн тестийг boundary value болон шаардлагад суурилсан тесттэй хослуулах нь программын чанарыг сайжруулахад чухал ач холбогдолтой юм.
 
----
-
-**Хичээл:** F.CSA313 — Программ хангамжийн чанарын баталгаа ба туршилт  
-**Лабораторийн ажил:** №09 — JaCoCo Code Coverage  
-**Оюутны код:** B242270001
+```
