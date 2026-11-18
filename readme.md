@@ -53,16 +53,21 @@ OS name: "linux", version: "6.18.33.2-microsoft-standard-wsl2", arch: "amd64", f
 
 ## 3. Хэсэг A: Happy path тестүүд ба эхний хэмжилт
 
-Эхний ээлжинд хэвийн урсгалыг шалгах тестүүдийг бичиж `mvn verify` ажиллуулсан. `results/jacoco-A.csv` файлаас харахад:
+Эхний ээлжинд хэвийн урсгалыг шалгах 5 тестийг бичиж (commit `c03a42a`), өмнөх хэмжилт хуримтлагдахгүйн тулд `mvn clean verify` ажиллуулсан. `results/mvn-verify-A.txt`: `Tests run: 5, Failures: 0`. `results/jacoco-A.csv` файлаас харахад:
 
-* **Line Coverage (А):** 100% (25/25 мөр)
-* **Branch Coverage (А):** 100% (41/41 салаа)
+* **Line Coverage (А):** 64.0% (16/25 мөр, 9 мөр хамрагдаагүй)
+* **Branch Coverage (А):** 53.7% (22/41 салаа, 19 салаа хамрагдаагүй)
+* **Instruction Coverage (А):** 71.1% (108/152)
+
+Happy path тестүүд нь алдааны салаа (exception), сахилгын зөрчил, `credits` нөхцөл худал болох салаа зэргийг дайраагүй тул 100% хүрээгүй.
 
 ---
 
 ## 4. Хэсэг B: CFG зурж Branch 100% хүрэх
 
-`scholarship()` болон бусад функцүүдийн Control Flow Graph (CFG)-ийг гараар зурж `docs/cfg-scholarship.png` байдлаар репод оруулсан.
+`scholarship()` болон бусад функцүүдийн Control Flow Graph (CFG)-ийг зурж `docs/cfg-scholarship.png` байдлаар репод оруулсан. Диаграммд зангилаа бүр кодын бодит нөхцөл (мөрийн дугаартай: D1 `gpa < 0`, D2 `gpa > 4`, D3 `credits < 0`, D4 `hasViolation`, D5 `gpa >= 3.8`, D6 `credits >= 15`, D7 `gpa >= 3.4`, D8 `credits >= 12`, D9 `gpa >= 3.0`), ирмэг бүр true/false болон түүнийг дайрах тестийн нэрээр тэмдэглэгдсэн. 9 шийдвэр × 2 = 18 салаа бүгд дор хаяж нэг тесттэй.
+
+![scholarship CFG](docs/cfg-scholarship.png)
 
 ### `scholarship()` методын CFG ба Ирмэгийн тестийн холбоос:
 
@@ -81,8 +86,17 @@ OS name: "linux", version: "6.18.33.2-microsoft-standard-wsl2", arch: "amd64", f
 | **50% Scholarship (2)** | `gpa >= 3.0` | `scholarship_returns50()` |
 | **Else / Default (0)** | `gpa < 3.0` | `scholarship_returns0_whenLowGpa()` |
 
-* **Тестийн тоо:** `results/mvn-verify-B.txt` файлаас харахад нийт **19 тест** амжилттай ажилласан (`Tests run: 19, Failures: 0, Errors: 0, Skipped: 0`).
-* **JaCoCo үр дүн:** `results/jacoco-B.csv` ба `results/jacoco-final.csv` тайлангуудад `BRANCH_MISSED = 0` болон `LINE_MISSED = 0` болж бүрэн 100% хамралтод хүрсэн.
+* **Тестийн тоо:** `results/mvn-verify-B.txt` файлаас харахад нийт **17 тест** амжилттай ажилласан (`Tests run: 17, Failures: 0, Errors: 0, Skipped: 0`). Энэ хэмжилтийг 60-ын заагийн засварын дараах commit `eb71ead` дээр `mvn clean verify`-ээр авсан.
+* **JaCoCo үр дүн (B):** `results/jacoco-B.csv` — Line 25/25 (100%), Branch 41/41 (100%), `BRANCH_MISSED = 0`, `LINE_MISSED = 0`.
+* **Эцсийн үр дүн:** Хэсэг C-ийн 2 давталтын тест нэмэгдсэний дараа `results/mvn-verify-final.txt`-д `Tests run: 19`, `results/jacoco-final.csv`-д Line 25/25, Branch 41/41 хэвээр.
+
+| Үе шат | Тест | Line | Branch | Файл |
+| --- | --- | --- | --- | --- |
+| A | 5 | 16/25 (64.0%) | 22/41 (53.7%) | `results/jacoco-A.csv` |
+| B | 17 | 25/25 (100%) | 41/41 (100%) | `results/jacoco-B.csv` |
+| Final | 19 | 25/25 (100%) | 41/41 (100%) | `results/jacoco-final.csv` |
+
+Бүх хэмжилтийг `mvn clean verify`-ээр (өмнөх `target/jacoco.exec` устгагдсан) авсан тул үе шат бүрийн хувь зөвхөн тухайн үеийн тестүүдийг илэрхийлнэ.
 
 ---
 
@@ -100,17 +114,14 @@ OS name: "linux", version: "6.18.33.2-microsoft-standard-wsl2", arch: "amd64", f
 
 ### 6.1. Унасан тестийн гаралт (`results/mvn-test-D-fail.txt`)
 
-Кодын хамралт 100% болсон хэдий ч спецификацийн дагуу 60 оноог "D" үнэлгээнд хамруулах үед анхны кодонд байсан `score > 60` гэсэн логик алдааны улмаас `mvn test` ажиллуулахад дараах алдаа гарч тест унасан:
+Кодын хамралт 100% болсон хэдий ч спецификацийн дагуу 60 оноог "D" үнэлгээнд хамруулах үед анхны кодонд байсан `score > 60` гэсэн логик алдааны улмаас засварын өмнөх commit `97bbc45` (17 тест) дээр `mvn clean test` ажиллуулахад дараах алдаа гарч тест унасан:
 
 ```text
-[INFO] Running mn.edu.must.sqat.ScholarshipCalculatorTest
-[ERROR] Tests run: 19, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.073 s <<< FAILURE!
-[ERROR] mn.edu.must.sqat.ScholarshipCalculatorTest.letterGrade_returnsD  Time elapsed: 0.012 s  <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-Expected: <D>
-but was: <F>
-    at mn.edu.must.sqat.ScholarshipCalculatorTest.letterGrade_returnsD(ScholarshipCalculatorTest.java:27)
-
+[ERROR] Tests run: 17, Failures: 1, Errors: 0, Skipped: 0 <<< FAILURE! -- in mn.edu.must.sqat.ScholarshipCalculatorTest
+[ERROR] mn.edu.must.sqat.ScholarshipCalculatorTest.letterGrade_returnsD <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <D> but was: <F>
+[ERROR]   ScholarshipCalculatorTest.letterGrade_returnsD:32 expected: <D> but was: <F>
+[INFO] BUILD FAILURE
 ```
 
 ### 6.2. Алдааны засвар ба Commit
